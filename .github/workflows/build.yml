@@ -56,6 +56,7 @@ jobs:
         run: |
           cd dist
           zip -q -r "../pub/S2AP-desktop-for-windows-x64.zip" win-x64
+          zip -q -r "../pub/S2AP-desktop-for-linux-x64.zip" linux-x64
           #zip -q -r "../pub/S2AP-desktop-for-mac-x64.zip" osx-x64
 
       - name: Package Linux
@@ -79,7 +80,7 @@ jobs:
           [Desktop Entry]
           Name=S2AP Desktop
           Comment=Spyro 2 Archipelago Duckstation Client
-          Exec=S2AP.Desktop
+          Exec=S2AP
           Icon=S2AP
           Type=Application
           Categories=Emulator;
