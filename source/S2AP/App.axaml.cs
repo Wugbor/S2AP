@@ -498,6 +498,16 @@ public partial class App : Application
 		await Client.Login(e.Slot.Trim(), !string.IsNullOrWhiteSpace(e.Password) ? e.Password : null);
 		if (Client.Options?.Count > 0)
 		{
+
+			// Set up handlers and variables for the session.
+			_cosmeticEffects = new ConcurrentQueue<string>();
+
+			Client.LocationManager.LocationCompleted += Client_LocationCompleted;
+			Client.CurrentSession.Locations.CheckedLocationsUpdated += Locations_CheckedLocationsUpdated;
+			Client.MessageReceived += Client_MessageReceived;
+			Client.ItemManager.ItemReceived += ItemReceived;
+			Client.LocationManager.EnableLocationsCondition = () => Helpers.IsInGame();
+
 			GemsanityOptions gemsanityOption = (GemsanityOptions)int.Parse(Client.Options?.GetValueOrDefault("enable_gemsanity", "0").ToString());
 			int slot = Client.CurrentSession.ConnectionInfo.Slot;
 			Dictionary<string, object> slotData = await Client.CurrentSession.DataStorage.GetSlotDataAsync(slot);
@@ -545,15 +555,6 @@ public partial class App : Application
 		{
 			Log.Logger.Error("Failed to login.  Please check your host, name, and password.");
 		}
-
-		// Set up handlers and variables for the session.
-		_cosmeticEffects = new ConcurrentQueue<string>();
-
-		Client.LocationManager.LocationCompleted += Client_LocationCompleted;
-		Client.CurrentSession.Locations.CheckedLocationsUpdated += Locations_CheckedLocationsUpdated;
-		Client.MessageReceived += Client_MessageReceived;
-		Client.ItemManager.ItemReceived += ItemReceived;
-		Client.LocationManager.EnableLocationsCondition = () => Helpers.IsInGame();
 	}
 
 	/**
