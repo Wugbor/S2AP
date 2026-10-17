@@ -79,7 +79,7 @@ jobs:
           [Desktop Entry]
           Name=S2AP Desktop
           Comment=Spyro 2 Archipelago Duckstation Client
-          Exec=S2AP
+          Exec=S2AP.Desktop
           Icon=S2AP
           Type=Application
           Categories=Emulator;
