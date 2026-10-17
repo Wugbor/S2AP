@@ -49,58 +49,60 @@ jobs:
           #Linux
           dotnet publish ${{ env.project }} -r linux-x64 -f net8.0 -c Release --self-contained true -o dist/linux-x64
 
-          # TODO Mac
+          # Mac
+          #dotnet publish ${{ env.project }} -r osx-x64 -f net8.0 -c Release --self-contained true -o dist/osx-x64
 
-      - name: Package Windows
+      - name: Package
         if: startsWith(github.ref, 'refs/tags/')
         run: |
           cd dist
-          zip -q -r "../pub/S2AP-desktop-for-windows-x64.zip" win-x64
-          zip -q -r "../pub/S2AP-desktop-for-linux-x64.zip" linux-x64
-          #zip -q -r "../pub/S2AP-desktop-for-mac-x64.zip" osx-x64
+          zip -q -r -j "../pub/S2AP-desktop-for-windows-x64.zip" win-x64
+          zip -q -r -j "../pub/S2AP-desktop-for-linux-x64.zip"   linux-x64
+          #zip -q -r -j "../pub/S2AP-desktop-for-macos-x64.zip"   osx-x64
 
-      - name: Package Linux
-        if: startsWith(github.ref, 'refs/tags/')
-        run: |
-          # Download appimagetool from new repo
-          wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O /tmp/appimagetool
-          chmod +x /tmp/appimagetool
-          export APPIMAGE_EXTRACT_AND_RUN=1
+        # may not need this, zipped executable seems usable
+    #   - name: Package Linux AppImage
+    #     if: startsWith(github.ref, 'refs/tags/')
+    #     run: |
+    #       # Download appimagetool from new repo
+    #       wget -q "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage" -O /tmp/appimagetool
+    #       chmod +x /tmp/appimagetool
+    #       export APPIMAGE_EXTRACT_AND_RUN=1
 
-          build_appimage() {
-            ARCH=$1
-            APPDIR=dist/S2AP-desktop-${ARCH}.AppDir
-            rm -rf "$APPDIR"
-            mkdir -p "$APPDIR/usr/bin"
-            cp -r dist/linux-${ARCH}/* "$APPDIR/usr/bin"
-            # TODO custom app icon?
-            cp source/S2AP/Assets/archipelago.png "$APPDIR/S2AP.png"
+    #       build_appimage() {
+    #         ARCH=$1
+    #         APPDIR=dist/S2AP-desktop-${ARCH}.AppDir
+    #         rm -rf "$APPDIR"
+    #         mkdir -p "$APPDIR/usr/bin"
+    #         cp -r dist/linux-${ARCH}/* "$APPDIR/usr/bin"
+    #         # TODO custom app icon?
+    #         cp source/S2AP/Assets/archipelago.png "$APPDIR/S2AP.png"
 
-            cat > "$APPDIR/S2AP.desktop" << 'DESKTOP'
-          [Desktop Entry]
-          Name=S2AP Desktop
-          Comment=Spyro 2 Archipelago Duckstation Client
-          Exec=S2AP
-          Icon=S2AP
-          Type=Application
-          Categories=Emulator;
-          DESKTOP
+    #         cat > "$APPDIR/S2AP.desktop" << 'DESKTOP'
+    #       [Desktop Entry]
+    #       Name=S2AP Desktop
+    #       Comment=Spyro 2 Archipelago Duckstation Client
+    #       Exec=S2AP
+    #       Icon=S2AP
+    #       Type=Application
+    #       Categories=Emulator;
+    #       DESKTOP
             
-            cat > "$APPDIR/AppRun" << 'APPRUN'
-          #!/bin/sh
-          SELF=$(readlink -f "$0")
-          HERE=${SELF%/*}
-          export PATH="${HERE}/usr/bin:${PATH}"
-          export LD_LIBRARY_PATH="${HERE}/usr/bin:${LD_LIBRARY_PATH}"
-          exec "${HERE}/usr/bin/S2AP" "$@"
-          APPRUN
+    #         cat > "$APPDIR/AppRun" << 'APPRUN'
+    #       #!/bin/sh
+    #       SELF=$(readlink -f "$0")
+    #       HERE=${SELF%/*}
+    #       export PATH="${HERE}/usr/bin:${PATH}"
+    #       export LD_LIBRARY_PATH="${HERE}/usr/bin:${LD_LIBRARY_PATH}"
+    #       exec "${HERE}/usr/bin/S2AP" "$@"
+    #       APPRUN
 
-            chmod +x "$APPDIR/AppRun"
+    #         chmod +x "$APPDIR/AppRun"
 
-            /tmp/appimagetool --no-appstream "$APPDIR" "pub/S2AP-desktop-for-linux-${ARCH}.AppImage"
-          }
+    #         /tmp/appimagetool --no-appstream "$APPDIR" "pub/S2AP-desktop-for-linux-${ARCH}.AppImage"
+    #       }
 
-          build_appimage x64
+    #       build_appimage x64
       
       - name: Release
         uses: softprops/action-gh-release@v1

@@ -27,6 +27,7 @@
     <UseWindowsForms>false</UseWindowsForms>
     <UseWPF>false</UseWPF>
     <Platforms>AnyCPU;x64</Platforms>
+	<AssemblyName>S2AP-Desktop</AssemblyName>
   </PropertyGroup>
   <ItemGroup>
   </ItemGroup>
