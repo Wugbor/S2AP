@@ -448,12 +448,12 @@ public partial class App : Application
 		// Don't double bind.
 		if (Client != null)
 		{
-			Client.LocationManager.CancelMonitors();
+			Client.LocationManager?.CancelMonitors();
 			Client.Connected -= OnConnected;
 			Client.Disconnected -= OnDisconnected;
-			Client.ItemManager.ItemReceived -= ItemReceived;
+			Client.ItemManager?.ItemReceived -= ItemReceived;
 			Client.MessageReceived -= Client_MessageReceived;
-			Client.LocationManager.LocationCompleted -= Client_LocationCompleted;
+			Client.LocationManager?.LocationCompleted -= Client_LocationCompleted;
 			if (Client.CurrentSession != null)
 			{
 				Client.CurrentSession.Locations.CheckedLocationsUpdated -= Locations_CheckedLocationsUpdated;
@@ -492,13 +492,7 @@ public partial class App : Application
 			Log.Logger.Error("Your host seems to be invalid.  Please confirm that you have entered it correctly.");
 			return;
 		}
-		// Set up handlers and variables for the session.
-		_cosmeticEffects = new ConcurrentQueue<string>();
-		Client.LocationManager.LocationCompleted += Client_LocationCompleted;
-		Client.CurrentSession.Locations.CheckedLocationsUpdated += Locations_CheckedLocationsUpdated;
-		Client.MessageReceived += Client_MessageReceived;
-		Client.ItemManager.ItemReceived += ItemReceived;
-		Client.LocationManager.EnableLocationsCondition = () => Helpers.IsInGame();
+
 		// Don't trim password, since leading and trailing whitespace is allowed.
 		_playerName = e.Slot.Trim();
 		await Client.Login(e.Slot.Trim(), !string.IsNullOrWhiteSpace(e.Password) ? e.Password : null);
@@ -551,6 +545,15 @@ public partial class App : Application
 		{
 			Log.Logger.Error("Failed to login.  Please check your host, name, and password.");
 		}
+
+		// Set up handlers and variables for the session.
+		_cosmeticEffects = new ConcurrentQueue<string>();
+
+		Client.LocationManager.LocationCompleted += Client_LocationCompleted;
+		Client.CurrentSession.Locations.CheckedLocationsUpdated += Locations_CheckedLocationsUpdated;
+		Client.MessageReceived += Client_MessageReceived;
+		Client.ItemManager.ItemReceived += ItemReceived;
+		Client.LocationManager.EnableLocationsCondition = () => Helpers.IsInGame();
 	}
 
 	/**
@@ -1935,7 +1938,8 @@ public partial class App : Application
 			}
 			Memory.Write(Addresses.SparxHorizontalRange, horizontalRange);
 			Memory.Write(Addresses.SparxVerticalRange, verticalRange);
-        } else
+		}
+		else
 		{
 			Memory.Write(Addresses.SparxHorizontalRange, 2062);
 			Memory.Write(Addresses.SparxVerticalRange, 640);
@@ -2130,7 +2134,7 @@ public partial class App : Application
 	/**
      * Writes a block of text to memory. endAddress will generally be the null terminator and will not be written to.
      */
-    private static void WriteStringToMemory(uint startAddress, uint endAddress, string stringToWrite, bool padWithSpaces=true)
+	private static void WriteStringToMemory(uint startAddress, uint endAddress, string stringToWrite, bool padWithSpaces = true)
 	{
 		uint address = startAddress;
 		int stringIndex = 0;
@@ -2174,7 +2178,7 @@ public partial class App : Application
 		else if (currentLevel == (byte)LevelInGameIDs.AutumnPlains)
 		{
 			Memory.WriteByte(Addresses.TotalTalismanAddress, (byte)(summerCount + autumnCount));
-            WriteStringToMemory(Addresses.AutumnEloraStartText, Addresses.AutumnEloraEndText, $"Hi, Spyro! You have @4{summerCount + autumnCount }@0 Talismans.");
+			WriteStringToMemory(Addresses.AutumnEloraStartText, Addresses.AutumnEloraEndText, $"Hi, Spyro! You have @4{summerCount + autumnCount}@0 Talismans.");
 			WriteStringToMemory(Addresses.AutumnEloraWarpStartText, Addresses.AutumnEloraWarpEndText, $"Hi, Spyro! You have @4{summerCount + autumnCount}@0 Talismans.");
 		}
 		return new Dictionary<string, int>() {
@@ -2226,7 +2230,8 @@ public partial class App : Application
 				levelGemCount += bundle_size * (Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == $"{levelName} Gem Bundle").Count() ?? 0);
 				Memory.Write(levelGemCountAddress, levelGemCount);
 				totalGems += levelGemCount;
-            } else
+			}
+			else
 			{
 				totalGems += Memory.ReadInt(levelGemCountAddress);
 			}
