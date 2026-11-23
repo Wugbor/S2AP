@@ -13,6 +13,11 @@ class GoalOptions:
     EPILOGUE = 7
     ORB_HUNT = 8
 
+class WorldProgressionOptions:
+    VANILLA = 0
+    WORLD_TALISMANS = 1
+    OPEN_WORLD = 2
+
 class LevelLockOptions:
     VANILLA = 0
     KEYS = 1
@@ -132,12 +137,32 @@ class TotalAvailableOrbs(Range):
     range_end = 64
     default = 64
 
-class EnableOpenWorld(Toggle):
-    """If on, Crush and Gulp do not require talismans.
-    Removes talisman items from the pool.
-    Effectively allows early access to each homeworld,
-    though swim and climb may logicially lock progression."""
-    display_name = "Enable Open World"
+# class CrushDoorTalismans(Range):
+#     """How many talismans are required to unlock the door to Crush."""
+#     display_name = "Talismans to Unlock Crush"
+#     range_start = 0
+#     range_end = 6
+#     default = 6
+
+# class GulpDoorTalismans(Range):
+#     """How many talismans are required to unlock the door to Gulp."""
+#     display_name = "Talismans to Unlock Gulp"
+#     range_start = 0
+#     range_end = 14
+#     default = 14
+
+class WorldProgressionOption(Choice):
+    """How progression is handled.
+    Vanilla: All talismans count toward boss door requirements.
+    WorldTalismans: Summer Forest and Autumn Plains have separate talisman groups.
+    OpenWorld: Crush and Gulp do not require talismans, talismans are removed from the pool.
+    	Effectively allows early access to each homeworld,
+        though swim and climb may logically lock progression."""
+    display_name = "World Progression"
+    default = WorldProgressionOptions.VANILLA
+    option_vanilla = WorldProgressionOptions.VANILLA
+    option_world_talismans = WorldProgressionOptions.WORLD_TALISMANS
+    option_open_world = WorldProgressionOptions.OPEN_WORLD
 
 class LevelLockOption(Choice):
     """Rules for unlocking each level.
@@ -633,7 +658,9 @@ class Spyro2Option(PerGameCommonOptions):
     ripto_door_orbs: RiptoDoorOrbs
     # TODO: Handle edge cases and enable.
     # available_orbs: TotalAvailableOrbs
-    enable_open_world: EnableOpenWorld
+    # crush_door_talismans: CrushDoorTalismans
+    # gulp_door_talismans: GulpDoorTalismans
+    world_progress_option: WorldProgressionOption
     open_world_warp_unlocks: StartWithWarps
     start_with_abilities: StartWithAbilities
     wt_warp_options: WTWarpOption
@@ -721,12 +748,14 @@ spyro_options_groups = [
     OptionGroup(
         "Game Progression",
         [
-            EnableOpenWorld,
+            WorldProgressionOption,
             StartWithAbilities,
             StartWithWarps,
             LevelLockOption,
             StartingLevelCount,
             RiptoDoorOrbs,
+            # CrushDoorTalismans,
+            # GulpDoorTalismans,
             MoneybagsSettings,
             WTWarpOption,
             ProfessorDoor,

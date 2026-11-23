@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from Options import OptionError
 from worlds.AutoWorld import World
-from .Options import AbilityOptions, SparxUpgradeOptions, LevelLockOptions, WTWarpOptions
+from .Options import AbilityOptions, SparxUpgradeOptions, LevelLockOptions, WTWarpOptions, WorldProgressionOptions
 from .LogicTricks import normalized_name_tricks
 
 class Logic(ABC):
@@ -9,7 +9,7 @@ class Logic(ABC):
 
     # General Logic/Abilities
     def is_boss_defeated(self, boss, state):
-        if self.world.options.enable_open_world and self.world.options.open_world_warp_unlocks and boss in ["Crush", "Gulp"]:
+        if self.world.options.world_progress_option == WorldProgressionOptions.OPEN_WORLD and self.world.options.open_world_warp_unlocks and boss in ["Crush", "Gulp"]:
             return True
         return state.has(boss + " Defeated", self.world.player)
 
@@ -98,7 +98,8 @@ class Logic(ABC):
 
     def can_enter_crush(self, state):
         has_sufficient_sparx = not self.world.options.enable_progressive_sparx_logic.value or self.has_sparx_health(1, state)
-        is_open_world = self.world.options.enable_open_world.value
+        is_open_world = self.world.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD
+        is_vanilla_progress = self.world.options.world_progress_option.value == WorldProgressionOptions.VANILLA
         # While there are several ways to skip into Crush early,
         # the player has chosen not to be in open world, so there's no reason
         # to add tricks for these skips.
@@ -106,12 +107,13 @@ class Logic(ABC):
             has_sufficient_sparx and \
             (
                 is_open_world or
-                state.has("Summer Forest Talisman", self.world.player, 6)
+                state.has("Summer Forest Talisman", self.world.player, 6) or
+                (is_vanilla_progress and state.has("Talisman", self.world.player, 6))
             )
 
 
     def can_enter_autumn(self, state):
-        return self.world.options.enable_open_world and self.world.options.open_world_warp_unlocks or \
+        return self.world.options.world_progress_option == WorldProgressionOptions.OPEN_WORLD and self.world.options.open_world_warp_unlocks or \
             self.is_boss_defeated("Crush", state)
 
     def can_enter_skelos(self, state):
@@ -181,12 +183,12 @@ class Logic(ABC):
 
     def can_enter_gulp(self, state):
         has_sufficient_sparx = not self.world.options.enable_progressive_sparx_logic.value or self.has_sparx_health(2, state)
-        is_open_world = self.world.options.enable_open_world.value
+        is_open_world = self.world.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD
         return self.can_pass_autumn_door(state, False) and has_sufficient_sparx and \
-            (is_open_world or (state.has("Summer Forest Talisman", self.world.player, 6) and state.has("Autumn Plains Talisman", self.world.player, 8)))
+            (is_open_world or (state.has("Summer Forest Talisman", self.world.player, 6) and state.has("Autumn Plains Talisman", self.world.player, 8)) or state.has("Talisman", self.world.player, 14))
 
     def can_enter_winter(self, state):
-        return self.world.options.enable_open_world and self.world.options.open_world_warp_unlocks or \
+        return self.world.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD and self.world.options.open_world_warp_unlocks or \
             self.is_boss_defeated("Gulp", state)
 
     def can_enter_mystic(self, state):
@@ -289,7 +291,7 @@ class Logic(ABC):
             hasattr(self, "logic_sf_second_half_double_jump") and self.logic_sf_second_half_double_jump and self.can_double_jump(state) or \
             hasattr(self, "logic_sf_second_half_nothing") and self.logic_sf_second_half_nothing or \
             (
-                self.world.options.enable_open_world and
+                self.world.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD and
                 self.world.options.open_world_warp_unlocks and
                 not from_other_homeworld and
                 (
@@ -482,7 +484,7 @@ class Logic(ABC):
         return self.can_climb(state) or \
             hasattr(self, "logic_ap_climb_skip") and self.logic_ap_climb_skip and self.can_double_jump(state) or \
             (
-                self.world.options.enable_open_world and
+                self.world.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD and
                 self.world.options.open_world_warp_unlocks and
                 not from_other_homeworld and
                 (
@@ -502,7 +504,7 @@ class Logic(ABC):
             hasattr(self, "logic_ap_door_skip") and self.logic_ap_door_skip and self.can_double_jump(state) or
             hasattr(self, "logic_ap_climb_skip") and self.logic_ap_climb_skip and self.can_double_jump(state) or
             (
-                self.world.options.enable_open_world and
+                self.world.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD and
                 self.world.options.open_world_warp_unlocks and
                 not from_other_homeworld and
                 (

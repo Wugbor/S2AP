@@ -90,7 +90,7 @@ location_tables = {
         Spyro2LocationData("Summer Forest: Life Bottle Near Sunny Beach", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Glimmer": [
-        Spyro2LocationData("Glimmer: Talisman", "Summer Forest Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Glimmer: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Glimmer: Lizard hunt", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Glimmer: Gem Lamp Flight outdoors", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Glimmer: Gem Lamp Flight in cave", "Orb", Spyro2LocationCategory.ORB),
@@ -98,7 +98,7 @@ location_tables = {
         #Spyro2LocationData("Glimmer: Moneybags Unlock: Glimmer Bridge", "Moneybags Unlock - Glimmer Bridge", Spyro2LocationCategory.MONEYBAGS),
     ],
     "Idol Springs": [
-        Spyro2LocationData("Idol Springs: Talisman", "Summer Forest Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Idol Springs: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Idol Springs: Foreman Bud's puzzles", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Idol Springs: Hula Girl rescue", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Idol Springs: Land on Idol (Skill Point)", "Filler", Spyro2LocationCategory.SKILLPOINT),
@@ -106,7 +106,7 @@ location_tables = {
         Spyro2LocationData("Idol Springs: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Colossus": [
-        Spyro2LocationData("Colossus: Talisman", "Summer Forest Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Colossus: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Colossus: Hockey vs. Goalie", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Colossus: Hockey one on one", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Colossus: Evil spirit search", "Orb", Spyro2LocationCategory.ORB),
@@ -115,7 +115,7 @@ location_tables = {
         Spyro2LocationData("Colossus: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Hurricos": [
-        Spyro2LocationData("Hurricos: Talisman", "Summer Forest Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Hurricos: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         # This is the in-memory order.
         Spyro2LocationData("Hurricos: Factory Glide 2", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Hurricos: Stone thief chase", "Orb", Spyro2LocationCategory.ORB),
@@ -125,7 +125,7 @@ location_tables = {
         Spyro2LocationData("Hurricos: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Aquaria Towers": [
-        Spyro2LocationData("Aquaria Towers: Talisman", "Summer Forest Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Aquaria Towers: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Aquaria Towers: Seahorse Rescue", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Aquaria Towers: Manta ride I", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Aquaria Towers: Manta ride II", "Orb", Spyro2LocationCategory.ORB),
@@ -135,7 +135,7 @@ location_tables = {
         Spyro2LocationData("Aquaria Towers: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Sunny Beach": [
-        Spyro2LocationData("Sunny Beach: Talisman", "Summer Forest Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Sunny Beach: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Sunny Beach: Blasting boxes", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Sunny Beach: Turtle soup I", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Sunny Beach: Turtle soup II", "Orb", Spyro2LocationCategory.ORB),
@@ -161,7 +161,7 @@ location_tables = {
         Spyro2LocationData("Autumn Plains: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Skelos Badlands": [
-        Spyro2LocationData("Skelos Badlands: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Skelos Badlands: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Skelos Badlands: Lava lizards I", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Skelos Badlands: Lava lizards II", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Skelos Badlands: Dem bones", "Orb", Spyro2LocationCategory.ORB),
@@ -172,21 +172,21 @@ location_tables = {
         Spyro2LocationData("Skelos Badlands: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Crystal Glacier": [
-        Spyro2LocationData("Crystal Glacier: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Crystal Glacier: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Crystal Glacier: Draclet cave", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Crystal Glacier: George the snow leopard", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Crystal Glacier: Moneybags Unlock: Crystal Glacier Bridge", "Moneybags Unlock - Crystal Glacier Bridge", Spyro2LocationCategory.MONEYBAGS),
         Spyro2LocationData("Crystal Glacier: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Breeze Harbor": [
-        Spyro2LocationData("Breeze Harbor: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Breeze Harbor: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Breeze Harbor: Gear grab", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Breeze Harbor: Mine blast", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Breeze Harbor: Life Bottle by Final Bonfire", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
         Spyro2LocationData("Breeze Harbor: Life Bottle by Final Cannon", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Zephyr": [
-        Spyro2LocationData("Zephyr: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Zephyr: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Zephyr: Cowlek corral I", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Zephyr: Cowlek corral II", "Orb", Spyro2LocationCategory.ORB),
         # This is the in-memory order.
@@ -200,7 +200,7 @@ location_tables = {
         Spyro2LocationData("Metro Speedway: Under 1:15 (Goal)", "Skill Point", Spyro2LocationCategory.SKILLPOINT_GOAL),
     ],
     "Scorch": [
-        Spyro2LocationData("Scorch: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Scorch: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Scorch: Barrel of Monkeys", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Scorch: Capture the flags", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Scorch: All Trees (Skill Point)", "Filler", Spyro2LocationCategory.SKILLPOINT),
@@ -208,13 +208,13 @@ location_tables = {
         Spyro2LocationData("Scorch: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Shady Oasis": [
-        Spyro2LocationData("Shady Oasis: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Shady Oasis: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Shady Oasis: Catch 3 thieves", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Shady Oasis: Free Hippos", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Shady Oasis: Life Bottle", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Magma Cone": [
-        Spyro2LocationData("Magma Cone: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Magma Cone: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         Spyro2LocationData("Magma Cone: Crystal geysers I", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Magma Cone: Crystal geysers II", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Magma Cone: Party crashers", "Orb", Spyro2LocationCategory.ORB),
@@ -225,7 +225,7 @@ location_tables = {
         Spyro2LocationData("Magma Cone: Life Bottle on Ledge 3", "Filler", Spyro2LocationCategory.LIFE_BOTTLE),
     ],
     "Fracture Hills": [
-        Spyro2LocationData("Fracture Hills: Talisman", "Autumn Plains Talisman", Spyro2LocationCategory.TALISMAN),
+        Spyro2LocationData("Fracture Hills: Talisman", "Talisman", Spyro2LocationCategory.TALISMAN),
         # This is the in-memory order.
         Spyro2LocationData("Fracture Hills: Earthshaper bash", "Orb", Spyro2LocationCategory.ORB),
         Spyro2LocationData("Fracture Hills: Free the faun", "Orb", Spyro2LocationCategory.ORB),

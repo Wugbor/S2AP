@@ -15,7 +15,7 @@ from .Locations import (Spyro2Location, Spyro2LocationCategory, location_tables,
     location_dictionary, location_name_groups)
 from .Options import Spyro2Option, GoalOptions, GemsanityOptions, GemsanityLocationOptions, MoneybagsOptions, \
     RandomizeGemColorOptions, LevelLockOptions, TrickDifficultyOptions, spyro_options_groups, AbilityOptions, \
-    MusicsanityOptions
+    MusicsanityOptions, WorldProgressionOptions
 from .Logic import Logic, BaseLogic, EasyLogic, MediumLogic, CustomLogic
 from .Rules import get_level_rules
 from .Client import Spyro2Client
@@ -53,7 +53,7 @@ class Spyro2Web(WebWorld):
     options_presets = {
         "Short Game": {
             "goal": "ripto",
-            "enable_open_world": True,
+            "world_progress_option": WorldProgressionOptions.OPEN_WORLD,
             "start_with_abilities": True,
             "open_world_warp_unlocks": True,
             "ripto_door_orbs": 30, #This number is a shot in the dark for what a brisk game would be
@@ -66,7 +66,7 @@ class Spyro2Web(WebWorld):
         },
         "Very Easy Mode": {
             "goal": "ripto",
-            "enable_open_world": True,
+            "world_progress_option": WorldProgressionOptions.OPEN_WORLD,
             "start_with_abilities": True,
             "open_world_warp_unlocks": True,
             "permanent_fireball_ability": "start_with",
@@ -100,7 +100,7 @@ class Spyro2Web(WebWorld):
             "moneybags_settings": "moneybagssanity",
         },
         "Open World with Level Locks": {
-            "enable_open_world": True,
+            "world_progress_option": WorldProgressionOptions.OPEN_WORLD,
             "open_world_warp_unlocks": True,
             "level_lock_options": "keys",
         },
@@ -290,7 +290,8 @@ class Spyro2World(World):
         if self.options.moneybags_settings.value == MoneybagsOptions.MONEYBAGSSANITY and \
             not (
                 self.options.start_with_abilities.value or
-                self.options.enable_open_world.value and self.options.open_world_warp_unlocks
+                self.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD and
+                self.options.open_world_warp_unlocks
             ) and \
             early_swim:
             self.multiworld.early_items[self.player]["Moneybags Unlock - Swim"] = 1
@@ -298,7 +299,8 @@ class Spyro2World(World):
         if self.options.moneybags_settings.value == MoneybagsOptions.MONEYBAGSSANITY and \
             not (
                 self.options.start_with_abilities.value or
-                self.options.enable_open_world.value and self.options.open_world_warp_unlocks
+                self.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD and
+                self.options.open_world_warp_unlocks
             ) and \
             early_double_jump:
             self.multiworld.early_items[self.player]["Double Jump Ability"] = 1
@@ -521,10 +523,13 @@ class Spyro2World(World):
             self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Orb", self.player, self.options.ripto_door_orbs.value)
         elif self.options.goal.value == GoalOptions.SIXTY_FOUR_ORB:
             self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Orb", self.player, 64)
-        elif self.options.goal.value == GoalOptions.HUNDRED_PERCENT and not self.options.enable_open_world.value:
-            self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Summer Forest Talisman", self.player, 6) and state.has("Autumn Plains Talisman", self.player, 8) and state.has("Orb", self.player, 64) and has_total_accessible_gems(self, state, 10000)
-        elif self.options.goal.value == GoalOptions.HUNDRED_PERCENT and self.options.enable_open_world.value:
-            self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Orb", self.player, 64) and has_total_accessible_gems(self, state, 10000)
+        elif self.options.goal.value == GoalOptions.HUNDRED_PERCENT:
+            if self.options.world_progress_option.value == WorldProgressionOptions.OPEN_WORLD:
+                self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Orb", self.player, 64) and has_total_accessible_gems(self, state, 10000)
+            elif self.options.world_progress_option.value == WorldProgressionOptions.WORLD_TALISMANS:
+                self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Summer Forest Talisman", self.player, 6) and state.has("Autumn Plains Talisman", self.player, 8) and state.has("Orb", self.player, 64) and has_total_accessible_gems(self, state, 10000)
+            else:
+                self.multiworld.completion_condition[self.player] = lambda state: logic.is_boss_defeated("Ripto", state) and state.has("Talisman", self.player, 14) and state.has("Orb", self.player, 64) and has_total_accessible_gems(self, state, 10000)
         elif self.options.goal.value == GoalOptions.TEN_TOKENS:
             self.multiworld.completion_condition[self.player] = lambda state: state.has("Dragon Shores Token", self.player, 10) and state.has("Orb", self.player, 55) and has_total_accessible_gems(self, state, 8000)
         elif self.options.goal.value == GoalOptions.ALL_SKILLPOINTS:
@@ -804,7 +809,7 @@ class Spyro2World(World):
             "options": {
                 "goal": self.options.goal.value,
                 "ripto_door_orbs": self.options.ripto_door_orbs.value,
-                "enable_open_world": self.options.enable_open_world.value,
+                "world_progress_option": self.options.world_progress_option.value,
                 "open_world_warp_unlocks": self.options.open_world_warp_unlocks.value,
                 "start_with_abilities": self.options.start_with_abilities.value,
                 "wt_warp_options": self.options.wt_warp_options.value,

@@ -23,7 +23,7 @@ from .Addresses import RAM
 from .Enums import GameStatus, LevelInGameIDs, SpyroColor, SpyroStates
 from .LevelData import GetLevelData
 
-from .Options import GoalOptions, TrickDifficultyOptions, MoneybagsOptions, GemsanityOptions, LevelLockOptions, AbilityOptions, BomboOptions, PortalTextColorOptions, WTWarpOptions, SparxUpgradeOptions
+from .Options import GoalOptions, TrickDifficultyOptions, MoneybagsOptions, GemsanityOptions, LevelLockOptions, AbilityOptions, BomboOptions, PortalTextColorOptions, WTWarpOptions, SparxUpgradeOptions, WorldProgressionOptions
 
 logger = logging.getLogger("Client")
 
@@ -85,7 +85,7 @@ def cmd_goal(self: "BizHawkClientCommandProcessor") -> None:
     skillPointsText = f"{client.currentSkillPoints} Skill Point" if client.currentSkillPoints == 1 else f"{client.currentSkillPoints} Skill Points"
     defeatedRiptoText = "have defeated Ripto" if client.riptoDefeated else "have not defeated Ripto"
     goal = ctx.slot_data["options"]["goal"]
-    openWorldOption = ctx.slot_data["options"]["enable_open_world"]
+    openWorldOption = ctx.slot_data["options"]["world_progress_option"] == WorldProgressionOptions.OPEN_WORLD
     if goal == GoalOptions.RIPTO:
         goalText = f"Defeat Ripto and collect {orbsNeededText}, the requirement to open his arena"
         progressText = f"You have {orbsText} and {defeatedRiptoText}."
@@ -152,7 +152,12 @@ def cmd_options(self: "BizHawkClientCommandProcessor"):
         trickDifficultyString = "Hard Tricks"
     else:
         trickDifficultyString = "Custom"
-    worldSettings = "Open World" if ctx.slot_data["options"]["enable_open_world"] else "Vanilla Progression"
+    worldProgressOptions = ctx.slot_data["options"]["world_progress_option"]
+    worldSettings = "Vanilla Progression"
+    if worldProgressOptions == WorldProgressionOptions.WORLD_TALISMANS:
+        worldSettings = "World Talismans"
+    elif worldProgressOptions == WorldProgressionOptions.OPEN_WORLD:
+        worldSettings = "Open World"
     goalEnum = ctx.slot_data["options"]["goal"]
     goalString = ""
     if goalEnum == GoalOptions.RIPTO:
@@ -210,11 +215,13 @@ def cmd_talismans(self: "BizHawkClientCommandProcessor"):
     client = ctx.client_handler
     assert isinstance(client, Spyro2Client)
 
-    openWorldOption = ctx.slot_data["options"]["enable_open_world"]
-    if openWorldOption != 0:
+    worldProgressOption = ctx.slot_data["options"]["world_progress_option"]
+    if worldProgressOption == WorldProgressionOptions.OPEN_WORLD:
         logger.info("Talismans are removed in Open World mode.")
-    else:
+    elif worldProgressOption == WorldProgressionOptions.WORLD_TALISMANS:
         logger.info(f"Summer Forest: {client.currentSFTalismans}; Autumn Plains: {client.currentAPTalismans}")
+    else:
+        logger.info(f"Talismans: {client.currentTalismans}")
 
 def cmd_debugInfo(self: "BizHawkClientCommandProcessor") -> None:
     """Prints information about your game to the screen."""
@@ -565,6 +572,13 @@ class Spyro2Client(BizHawkClient):
                 if self.extraHitPoint > 1:
                     self.extraHitPoint = 1
             self.maxHealth = startingHealth + self.extraHitPoint
+
+            # Ensure backward compatible pre v2.3.0
+            if "enable_open_world" in ctx.slot_data["options"]:
+                openWorld = ctx.slot_data["options"]["enable_open_world"]
+                ctx.slot_data["options"]["world_progress_option"] = WorldProgressionOptions.OPEN_WORLD if openWorld else WorldProgressionOptions.WORLD_TALISMANS
+            else:
+                logger.info("Current version, not converting open world data")
         try:
             if self.gotDatastorage:
                 # Last init to write the status
@@ -795,6 +809,7 @@ class Spyro2Client(BizHawkClient):
             if recv_index <= (len(ctx.items_received)) and not boolIsFirstBoot:
                 increment = 0
                 orbCountFromServer = 0
+                talismansFromServer = 0
                 sfTalismansFromServer = 0
                 apTalismansFromServer = 0
                 skillPointsFromServer = 0
@@ -811,6 +826,8 @@ class Spyro2Client(BizHawkClient):
                     itemName = ctx.item_names.lookup_in_slot(item.item, ctx.slot)
                     if itemName == "Orb":
                         orbCountFromServer += 1
+                    elif itemName == "Talisman":
+                        talismansFromServer += 1
                     elif itemName == "Summer Forest Talisman":
                         sfTalismansFromServer += 1
                     elif itemName == "Autumn Plains Talisman":
@@ -892,13 +909,27 @@ class Spyro2Client(BizHawkClient):
                 if orbCountFromServer != orbCount:
                     itemsWrites += [(RAM.TotalOrbAddress, orbCountFromServer.to_bytes(1, "little"), "MainRAM")]
                 self.currentOrbs = orbCountFromServer
-                if currentLevel != LevelInGameIDs.SummerForest and talismanCount != sfTalismansFromServer + apTalismansFromServer:
-                    itemsWrites += [(RAM.TotalTalismanAddress, (sfTalismansFromServer + apTalismansFromServer).to_bytes(1, "little"), "MainRAM")]
-                elif currentLevel == LevelInGameIDs.SummerForest and talismanCount != sfTalismansFromServer:
-                    itemsWrites += [(RAM.TotalTalismanAddress, sfTalismansFromServer.to_bytes(1, "little"), "MainRAM")]
-                self.currentTalismans = sfTalismansFromServer + apTalismansFromServer
-                if self.currentAPTalismans != apTalismansFromServer or self.currentSFTalismans != sfTalismansFromServer:
+                if currentLevel != LevelInGameIDs.SummerForest:
+                    talismansToCompare = talismansFromServer
+                    if ctx.slot_data["options"]["world_progress_option"] == WorldProgressionOptions.WORLD_TALISMANS:
+                        talismansToCompare = sfTalismansFromServer + apTalismansFromServer
+                    # TODO add check here for reduced talisman requirements
+                    if talismanCount != talismansToCompare and talismanCount != 14:
+                        itemsWrites += [(RAM.TotalTalismanAddress, min(14, talismansToCompare).to_bytes(1, "little"), "MainRAM")]
+                elif currentLevel == LevelInGameIDs.SummerForest:
+                    talismansToCompare = talismansFromServer
+                    if ctx.slot_data["options"]["world_progress_option"] == WorldProgressionOptions.WORLD_TALISMANS:
+                        talismansToCompare = sfTalismansFromServer
+                    # TODO add check here for reduced talisman requirements
+                    if talismanCount != talismansToCompare and talismanCount != 6:
+                        itemsWrites += [(RAM.TotalTalismanAddress, min(6, talismansToCompare).to_bytes(1, "little"), "MainRAM")]
+                if ctx.slot_data["options"]["world_progress_option"] == WorldProgressionOptions.VANILLA:
+                    if self.currentTalismans != talismansFromServer:
+                        logger.info(f"Current Talisman count: {talismansFromServer}")
+                        self.currentTalismans = talismansFromServer
+                elif self.currentAPTalismans != apTalismansFromServer or self.currentSFTalismans != sfTalismansFromServer:
                     logger.info(f"Current Talisman count - Summer Forest: {sfTalismansFromServer}; Autumn Plains: {apTalismansFromServer}")
+                    self.currentTalismans = sfTalismansFromServer + apTalismansFromServer
                 self.currentSFTalismans = sfTalismansFromServer
                 self.currentAPTalismans = apTalismansFromServer
                 if newLives != 0:
@@ -952,7 +983,9 @@ class Spyro2Client(BizHawkClient):
                     elif currentgoal == GoalOptions.SIXTY_FOUR_ORB and orbCountFromServer >= 64 and self.riptoDefeated:
                         has_goaled = True
                     elif currentgoal == GoalOptions.HUNDRED_PERCENT and orbCountFromServer >= 64 and \
-                            (ctx.slot_data["options"]["enable_open_world"] or sfTalismansFromServer + apTalismansFromServer >= 14) and \
+                            (ctx.slot_data["options"]["world_progress_option"] == WorldProgressionOptions.OPEN_WORLD or \
+                            talismansFromServer >= 14 or \
+                            sfTalismansFromServer + apTalismansFromServer >= 14) and \
                             totalGems >= 10000 and self.riptoDefeated:
                         has_goaled = True
                     elif currentgoal == GoalOptions.ALL_SKILLPOINTS and skillPointsFromServer >= 16:
@@ -1765,6 +1798,9 @@ class Spyro2Client(BizHawkClient):
         riptoDoorOrbDisplay = eloraDoorReads[2]
         currentOrbs = eloraDoorReads[3]
 
+        worldProgressOption = ctx.slot_data["options"]["world_progress_option"]
+        isVanillaProgress = worldProgressOption == WorldProgressionOptions.VANILLA
+
         eloraDoorWrites = []
 
         if currentLevel == LevelInGameIDs.WinterTundra:
@@ -1780,20 +1816,22 @@ class Spyro2Client(BizHawkClient):
         # // Note that Elora won't open the door if your count is more than 6.
         elif currentLevel == LevelInGameIDs.SummerForest:
             summerTalismanText = eloraDoorReads[4] # always 1 character
-            if summerTalismanText != str(self.currentSFTalismans):
+            summerTalismanCount = self.currentTalismans if isVanillaProgress else self.currentSFTalismans
+            if summerTalismanText != str(summerTalismanCount):
                 doorTextLength = RAM.SummerEloraEndText - RAM.SummerEloraStartText
                 warpTextLength = RAM.SummerEloraWarpEndText - RAM.SummerEloraWarpStartText
                 # update summerEloraDoorText read if this text changes!!
-                talismanCountText = f"Hi, Spyro! You have @4{self.currentSFTalismans}@0 Summer Forest Talismans."
+                talismanCountText = f"Hi, Spyro! You have @4{summerTalismanCount}@0 {"" if isVanillaProgress else "Summer Forest "}Talismans."
                 eloraDoorWrites += [(RAM.SummerEloraStartText, text_to_bytes(talismanCountText.ljust(doorTextLength, " "), doorTextLength), "MainRAM")]
                 eloraDoorWrites += [(RAM.SummerEloraWarpStartText, text_to_bytes(talismanCountText.ljust(warpTextLength, " "), warpTextLength), "MainRAM")]
         elif currentLevel == LevelInGameIDs.AutumnPlains:
             autumnTalismanText = eloraDoorReads[5].replace("@", "") # up to 2 characters, remove @ if exists
-            if autumnTalismanText != str(self.currentSFTalismans + self.currentAPTalismans):
+            autumnTalismanCount = self.currentTalismans if isVanillaProgress else self.currentSFTalismans + self.currentAPTalismans
+            if autumnTalismanText != str(autumnTalismanCount):
                 doorTextLength = RAM.AutumnEloraEndText - RAM.AutumnEloraStartText
                 warpTextLength = RAM.AutumnEloraWarpEndText - RAM.AutumnEloraWarpStartText
                 # update autumnEloraDoorText read if this text changes!!
-                talismanCountText = f"Hi, Spyro! You have @4{self.currentSFTalismans + self.currentAPTalismans}@0 Talismans."
+                talismanCountText = f"Hi, Spyro! You have @4{autumnTalismanCount}@0 Talismans."
                 eloraDoorWrites += [(RAM.AutumnEloraStartText, text_to_bytes(talismanCountText.ljust(doorTextLength, " "), doorTextLength), "MainRAM")]
                 eloraDoorWrites += [(RAM.AutumnEloraWarpStartText, text_to_bytes(talismanCountText.ljust(warpTextLength, " "), warpTextLength), "MainRAM")]
                     
@@ -1829,7 +1867,7 @@ class Spyro2Client(BizHawkClient):
         autumnGuidebookUnlock = openWorldReads[2]
         winterGuidebookUnlock = openWorldReads[3]
 
-        openWorldOption = ctx.slot_data["options"]["enable_open_world"]
+        openWorldOption = ctx.slot_data["options"]["world_progress_option"] == WorldProgressionOptions.OPEN_WORLD
         openWorldWarpUnlocks = ctx.slot_data["options"]["open_world_warp_unlocks"]
 
         openWorldWrites = []

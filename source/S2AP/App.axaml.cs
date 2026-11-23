@@ -251,8 +251,8 @@ public partial class App : Application
             return;
         }
         if (Client == null || Client.ItemManager == null || Client.CurrentSession == null) return;
-        int openWorldOption = int.Parse(Client.Options?.GetValueOrDefault("enable_open_world", "0").ToString());
-        CompletionGoal goal = (CompletionGoal)(int.Parse(Client.Options?.GetValueOrDefault("goal", 0).ToString()));
+        WorldProgressionOptions worldProgressOption = (WorldProgressionOptions)int.Parse(Client.Options?.GetValueOrDefault("world_progress_option", WorldProgressionOptions.Vanilla).ToString());
+        CompletionGoal goal = (CompletionGoal)int.Parse(Client.Options?.GetValueOrDefault("goal", 0).ToString());
         Dictionary<string, int> talismans = CalculateCurrentTalismans();
         switch (commandText.ToLower())
         {
@@ -278,7 +278,15 @@ public partial class App : Application
                 GemsanityOptions gemsanityOption = (GemsanityOptions)int.Parse(Client.Options?.GetValueOrDefault("enable_gemsanity", "0").ToString());
                 LevelLockOptions levelLockOption = (LevelLockOptions)int.Parse(Client.Options?.GetValueOrDefault("level_lock_options", "0").ToString());
                 TrickDifficultyOptions trickDifficultyOption = (TrickDifficultyOptions)int.Parse(Client.Options?.GetValueOrDefault("trick_difficulty", "0").ToString());
-                string worldSettings = openWorldOption != 0 ? "Open World" : "Vanilla Progression";
+                string worldSettings = "Vanilla Progression";
+				switch (worldProgressOption) {
+					case WorldProgressionOptions.WorldTalismans:
+						worldSettings = "World Talismans";
+						break;
+					case WorldProgressionOptions.OpenWorld:
+						worldSettings = "Open World";
+						break;
+				}
                 string goalString = $"{goal}";
                 if (goal == CompletionGoal.Ripto)
                 {
@@ -316,12 +324,18 @@ public partial class App : Application
             case "showtalismancount":
             case "!talismans":
                 Log.Logger.Information($"\r\n{command.Command}");
-                if (openWorldOption != 0)
-                {
-                    Log.Logger.Information("Talismans are removed in Open World mode.\r\n");
-                    break;
-                }
-                Log.Logger.Information($"Summer Forest: {talismans.GetValueOrDefault("Summer Forest", 0)}; Autumn Plains: {talismans.GetValueOrDefault("Autumn Plains", 0)}\r\n");
+				switch (worldProgressOption)
+				{
+					case WorldProgressionOptions.OpenWorld:
+                    	Log.Logger.Information("Talismans are removed in Open World mode.\r\n");
+						break;
+					case WorldProgressionOptions.WorldTalismans:
+                		Log.Logger.Information($"Summer Forest: {talismans.GetValueOrDefault("Summer Forest", 0)}; Autumn Plains: {talismans.GetValueOrDefault("Autumn Plains", 0)}\r\n");
+						break;
+					default:
+						Log.Logger.Information($"Talismans: {talismans.GetValueOrDefault("Total", 0)}\r\n");
+						break;
+				}
                 break;
             case "usequiethints":
             case "!quiethints":
@@ -369,16 +383,17 @@ public partial class App : Application
                         progressText = $"You have {orbsText} and {defeatedRiptoText}.";
                         break;
                     case CompletionGoal.HundredPercent:
-                        if (openWorldOption == 0)
-                        {
-                            goalText = "Defeat Ripto and collect all 14 talismans, 64 orbs, and 10000 gems";
-                            progressText = $"You have {talismansText}, {orbsText}, {gemsText},\r\nand {defeatedRiptoText}";
-                        }
-                        else
-                        {
-                            goalText = "Defeat Ripto and collect all 64 orbs and 10000 gems";
-                            progressText = $"You have {orbsText}, {gemsText}, and {defeatedRiptoText}";
-                        }
+						switch (worldProgressOption)
+						{
+							case WorldProgressionOptions.OpenWorld:
+								goalText = "Defeat Ripto and collect all 64 orbs and 10000 gems";
+								progressText = $"You have {orbsText}, {gemsText}, and {defeatedRiptoText}";
+								break;
+							default:
+								goalText = "Defeat Ripto and collect all 14 talismans, 64 orbs, and 10000 gems";
+								progressText = $"You have {talismansText}, {orbsText}, {gemsText},\r\nand {defeatedRiptoText}";
+								break;
+						}
                         break;
                     case CompletionGoal.TenTokens:
                         goalText = "Collect 55 orbs and 8000 gems to unlock the theme park\r\n" +
@@ -569,6 +584,11 @@ public partial class App : Application
             Dictionary<string, int> talismans;
             switch (args.Item.Name)
             {
+				case "Talisman":
+					talismans = CalculateCurrentTalismans();
+					Log.Logger.Information($"Current Talisman count: {talismans.GetValueOrDefault("Total", 0)}");
+					CheckGoalCondition();
+					break;
                 case "Summer Forest Talisman":
                     talismans = CalculateCurrentTalismans();
                     Log.Logger.Information($"Current Talisman count - Summer Forest: {talismans.GetValueOrDefault("Summer Forest", 0)}; Autumn Plains: {talismans.GetValueOrDefault("Autumn Plains", 0)}");
@@ -1407,8 +1427,8 @@ public partial class App : Application
         // Avoid overwhelming the game when many cosmetic effects are received at once by processing only 1
         // every 5 seconds.  This also lets the user see effects when logging in asynchronously.
         // TODO: Handle this on game reset as well.
-        int openWorldOption = int.Parse(Client.Options?.GetValueOrDefault("enable_open_world", "0").ToString());
-        if (openWorldOption != 0)
+        WorldProgressionOptions worldProgressOption = (WorldProgressionOptions)int.Parse(Client.Options?.GetValueOrDefault("world_progress_options", WorldProgressionOptions.Vanilla).ToString());
+        if (worldProgressOption == WorldProgressionOptions.OpenWorld)
         {
             Memory.WriteByte(Addresses.CrushGuidebookUnlock, 1);
             Memory.WriteByte(Addresses.GulpGuidebookUnlock, 1);
@@ -1614,6 +1634,12 @@ public partial class App : Application
             _deathLinkService = Client.EnableDeathLink();
             _deathLinkService.OnDeathLinkReceived += new DeathLinkService.DeathLinkReceivedHandler(HandleDeathLink);
         }
+        if ((bool)Client.Options?.ContainsKey("enable_open_world"))
+        {
+            int openWorldOption = int.Parse(Client.Options?.GetValueOrDefault("enable_open_world", "0").ToString());
+            WorldProgressionOptions worldProgressOption = openWorldOption == 0 ? WorldProgressionOptions.WorldTalismans : WorldProgressionOptions.OpenWorld;
+            Client.Options?.Add("world_progress_option", worldProgressOption);
+        }
         CheckGoalCondition();
         LevelInGameIDs currentLevel = (LevelInGameIDs)Memory.ReadByte(Addresses.CurrentLevelAddress);
         _handleGemsanity = true;
@@ -1761,7 +1787,7 @@ public partial class App : Application
         var currentTokens = CalculateCurrentTokens();
         var currentGems = Memory.ReadShort(Addresses.TotalGemAddress);
         int goal = int.Parse(Client.Options?.GetValueOrDefault("goal", 0).ToString());
-        int isOpenWorld = int.Parse(Client.Options?.GetValueOrDefault("enable_open_world", 0).ToString());
+        WorldProgressionOptions worldProgressOption = (WorldProgressionOptions)int.Parse(Client.Options?.GetValueOrDefault("world_progress_options", WorldProgressionOptions.Vanilla).ToString());
         if ((CompletionGoal)goal == CompletionGoal.Ripto)
         {
             if (currentOrbs >= _requiredOrbs && (Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Ripto Defeated").Count() ?? 0) > 0)
@@ -1786,7 +1812,7 @@ public partial class App : Application
         }
         else if ((CompletionGoal)goal == CompletionGoal.HundredPercent)
         {
-            if (currentOrbs >= 64 && (isOpenWorld != 0 || currentTalismans >= 14) && currentGems == 10000 && (Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Ripto Defeated").Count() ?? 0) > 0)
+            if (currentOrbs >= 64 && (worldProgressOption == WorldProgressionOptions.OpenWorld || currentTalismans >= 14) && currentGems == 10000 && (Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Ripto Defeated").Count() ?? 0) > 0)
             {
                 _hasSubmittedGoal = true;
                 Task.Run(async () =>
@@ -2146,29 +2172,47 @@ public partial class App : Application
      */
     private static Dictionary<string, int> CalculateCurrentTalismans()
     {
-        var summerCount = Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Summer Forest Talisman").Count() ?? 0;
-        summerCount = Math.Min(summerCount, 6);
-        var autumnCount = Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Autumn Plains Talisman").Count() ?? 0;
-        autumnCount = Math.Min(autumnCount, 8);
+		var isVanillaProgress = (WorldProgressionOptions)Client.Options?.GetValueOrDefault("world_progress_option", WorldProgressionOptions.Vanilla) == WorldProgressionOptions.Vanilla;
+        var summerCount = 0;
+        var autumnCount = 0;
+		var totalCount = 0;
+
+		if (isVanillaProgress)
+		{
+			totalCount = Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Talisman").Count() ?? 0;
+			totalCount = Math.Min(totalCount, 14);
+		}
+		else
+		{
+			summerCount = Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Summer Forest Talisman").Count() ?? 0;
+			summerCount = Math.Min(summerCount, 6);
+			autumnCount = Client.CurrentSession?.Items?.AllItemsReceived?.Where(x => x != null && x.ItemName == "Autumn Plains Talisman").Count() ?? 0;
+			autumnCount = Math.Min(autumnCount, 8);
+			totalCount = summerCount + autumnCount;
+		}
         var currentLevel = Memory.ReadByte(Addresses.CurrentLevelAddress);
         // Handle Elora in Summer Forest and the door to Crush by special casing talisman count in this level only.
         // Note that Elora won't open the door if your count is more than 6.
         if (currentLevel == (byte)LevelInGameIDs.SummerForest)
         {
-            Memory.WriteByte(Addresses.TotalTalismanAddress, (byte)summerCount);
-            WriteStringToMemory(Addresses.SummerEloraStartText, Addresses.SummerEloraEndText, $"Hi, Spyro! You have @4{summerCount}@0 Summer Forest Talismans.");
-            WriteStringToMemory(Addresses.SummerEloraWarpStartText, Addresses.SummerEloraWarpEndText, $"Hi, Spyro! You have @4{summerCount}@0 Summer Forest Talismans.");
+			var textCount = isVanillaProgress ? totalCount : summerCount;
+			var talismanTypeText = isVanillaProgress ? "" : "Summer Forest ";
+            // TODO check Crush required talismans, write 6 if enough found
+            Memory.WriteByte(Addresses.TotalTalismanAddress, (byte)Math.Min(textCount, 6));
+            WriteStringToMemory(Addresses.SummerEloraStartText, Addresses.SummerEloraEndText, $"Hi, Spyro! You have @4{textCount}@0 {talismanTypeText}Talismans.");
+            WriteStringToMemory(Addresses.SummerEloraWarpStartText, Addresses.SummerEloraWarpEndText, $"Hi, Spyro! You have @4{textCount}@0 {talismanTypeText}Talismans.");
         }
         else if (currentLevel == (byte)LevelInGameIDs.AutumnPlains)
         {
-            Memory.WriteByte(Addresses.TotalTalismanAddress, (byte)(summerCount + autumnCount));
-            WriteStringToMemory(Addresses.AutumnEloraStartText, Addresses.AutumnEloraEndText, $"Hi, Spyro! You have @4{summerCount + autumnCount }@0 Talismans.");
-            WriteStringToMemory(Addresses.AutumnEloraWarpStartText, Addresses.AutumnEloraWarpEndText, $"Hi, Spyro! You have @4{summerCount + autumnCount}@0 Talismans.");
+            // TODO check Gulp required talismans, write 14 if enough found
+            Memory.WriteByte(Addresses.TotalTalismanAddress, (byte)totalCount);
+            WriteStringToMemory(Addresses.AutumnEloraStartText, Addresses.AutumnEloraEndText, $"Hi, Spyro! You have @4{totalCount}@0 Talismans.");
+            WriteStringToMemory(Addresses.AutumnEloraWarpStartText, Addresses.AutumnEloraWarpEndText, $"Hi, Spyro! You have @4{totalCount}@0 Talismans.");
         }
         return new Dictionary<string, int>() {
             { "Summer Forest", summerCount },
             { "Autumn Plains", autumnCount },
-            { "Total", summerCount + autumnCount }
+            { "Total", totalCount }
          };
     }
     

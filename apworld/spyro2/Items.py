@@ -1,7 +1,7 @@
 from enum import IntEnum
 from typing import NamedTuple
 from BaseClasses import Item
-from .Options import MoneybagsOptions, SparxUpgradeOptions, AbilityOptions, GemsanityOptions, GoalOptions, LevelLockOptions
+from .Options import MoneybagsOptions, SparxUpgradeOptions, AbilityOptions, GemsanityOptions, GoalOptions, LevelLockOptions, WorldProgressionOptions
 from Options import OptionError
 
 
@@ -37,6 +37,7 @@ class Spyro2Item(Item):
 
 
 key_item_names = {
+    "Talisman",
     "Summer Forest Talisman",
     "Autumn Plains Talisman",
     "Orb"
@@ -76,6 +77,7 @@ _all_items = [Spyro2ItemData(row[0], row[1], row[2]) for row in [
     ("Extended Sparx Range", 1025, Spyro2ItemCategory.MISC),
     ("Extra Hit Point", 1026, Spyro2ItemCategory.MISC),
     ("Lazy Sparx Trap", 1027, Spyro2ItemCategory.TRAP),
+    ("Talisman", 1028, Spyro2ItemCategory.TALISMAN),
 
     ("Moneybags Unlock - Crystal Glacier Bridge", 3000, Spyro2ItemCategory.MONEYBAGS),
     ("Moneybags Unlock - Aquaria Towers Submarine", 3001, Spyro2ItemCategory.MONEYBAGS),
@@ -269,7 +271,11 @@ def BuildItemPool(world, count, options, locked_levels):
             else:
                 multiworld.push_precollected(world.create_item(f"{level} Unlock"))
 
-    if not world.options.enable_open_world.value:
+    if world.options.world_progress_option.value == WorldProgressionOptions.VANILLA:
+        for i in range(14):
+            item_pool.append(item_dictionary["Talisman"])
+        remaining_count = remaining_count - 14
+    elif world.options.world_progress_option.value == WorldProgressionOptions.WORLD_TALISMANS:
         for i in range(6):
             item_pool.append(item_dictionary["Summer Forest Talisman"])
         for i in range(8):
